@@ -1,10 +1,10 @@
-SDK_ROOT = ../../../../..
+SDK_ROOT = frdm-kl46z-sdk-main
 
 CC = arm-none-eabi-gcc
 OBJCOPY = arm-none-eabi-objcopy
 SIZE = arm-none-eabi-size
 
-TARGET = practica_interrupciones
+PROJECTFOLDER = $(SDK_ROOT)/boards/frdmkl46z/demo_apps
 
 CPU = -mcpu=cortex-m0plus -mthumb
 
@@ -28,21 +28,17 @@ CFLAGS = $(CPU) \
 	-fdata-sections \
 	-fno-builtin
 
+#
+
 LDFLAGS = $(CPU) \
 	-T linker.ld \
 	-nostdlib \
 	-Wl,--gc-sections \
 	-Wl,-Map=$(TARGET).map
 
-SOURCES = \
-	main.c \
-	pin_mux.c \
-	src/startup_mkl46z4.c \
-	$(SDK_ROOT)/devices/MKL46Z4/drivers/fsl_gpio.c \
-	$(SDK_ROOT)/devices/MKL46Z4/drivers/fsl_clock.c \
-	$(SDK_ROOT)/devices/MKL46Z4/drivers/fsl_common.c
-
-OBJECTS = $(SOURCES:.c=.o)
+SOURCES =
+TARGET =
+OBJECTS =
 
 all: $(TARGET).elf $(TARGET).bin
 
@@ -50,7 +46,7 @@ $(TARGET).elf: $(OBJECTS)
 	$(CC) $(LDFLAGS) -o $@ $(OBJECTS) -lc -lnosys -lgcc
 	$(SIZE) $@
 
-%.o: %.c
+%.o: %.c %.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(SDK_ROOT)/devices/MKL46Z4/drivers/%.o: $(SDK_ROOT)/devices/MKL46Z4/drivers/%.c
@@ -59,7 +55,20 @@ $(SDK_ROOT)/devices/MKL46Z4/drivers/%.o: $(SDK_ROOT)/devices/MKL46Z4/drivers/%.c
 $(TARGET).bin: $(TARGET).elf
 	$(OBJCOPY) -O binary $< $@
 
+led_blinky: SOURCES = $(wildcard $(PROJECTFOLDER)/led_blinky/*.c)
+led_blinky: TARGET = led_blinky
+led_blinky: OBJECTS = $(SOURCES:.c=.o)
+led_blinky: INCLUDES += $(PROJECTFOLDER)/led_blinky
+led_blinky: all
+
+hello_world:
+
+flash_led: led_blinky
+
+flash_hello: hello_world
+
+
 clean:
 	rm -f $(OBJECTS) $(TARGET).elf $(TARGET).bin $(TARGET).map
 
-.PHONY: all clean
+.PHONY: all clean flash_hello flash_led
