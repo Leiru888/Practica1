@@ -1,4 +1,4 @@
-SDK_ROOT = ../../../../..
+SDK_ROOT = frdm-kl46z-sdk-main
 
 CC = arm-none-eabi-gcc
 OBJCOPY = arm-none-eabi-objcopy
